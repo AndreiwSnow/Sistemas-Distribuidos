@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+
+  redis:
+    image: redis:7-alpine
+    container_name: sd_redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory 200mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+    networks:
+      - sd_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  response_generator:
+    build: ./response_generator
+    container_name: sd_response_generator
+    environment:
+      - DATASET_PATH=/data/open_buildings_rm.csv
+      - PORT=8001
+    volumes:
+      - ./data:/data:ro
+    ports:
+      - "8001:8001"
+    networks:
+      - sd_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  cache_service:
+    build: ./cache_service
+    container_name: sd_cache
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RESPONSE_GENERATOR_URL=http://response_generator:8001
+      - METRICS_URL=http://metrics:8003
+       - TTL=300
+      - PORT=8002
+    ports:
+      - "8002:8002"
+    depends_on:
+      redis:
+        condition: service_healthy
+      response_generator:
+        condition: service_healthy
+    networks:
+      - sd_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  metrics:
+    build: ./metrics
+    container_name: sd_metrics
+    environment:
+      - PORT=8003
+      - DB_PATH=/metrics/metrics.db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EVICTION_POLL_INTERVAL=15
+    volumes:
+      - metrics_data:/metrics
+    ports:
+      - "8003:8003"
+    networks:
+      - sd_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  traffic_generator:
+    build: ./traffic_generator
+    container_name: sd_traffic
+    environment:
+      - CACHE_URL=http://cache_service:8002
+      - METRICS_URL=http://metrics:8003
+      - DISTRIBUTION=zipf
+      - ZIPF_S=1.2
+      - TOTAL_REQUESTS=1000
+      - CONCURRENCY=10
+    depends_on:
+      cache_service:
+        condition: service_healthy
+      metrics:
+        condition: service_healthy
+    networks:
+      - sd_net
+
+volumes:
+  metrics_data:
+
+networks:
+  sd_net:
+    driver: bridge
