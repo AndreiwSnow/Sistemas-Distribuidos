@@ -29,7 +29,7 @@ No es necesario instalar dependencias de Python manualmente.
 Desde la carpeta de la tarea, ejecutar:
 
 ```bash
-docker compose-down -v && docker compose up
+docker compose-down -v && docker-compose up
 ```
 
 Al levantar los contenedores, el generador de tráfico comienza a enviar consultas automáticamente a Kafka y el consumer las procesa.
@@ -37,13 +37,13 @@ Al levantar los contenedores, el generador de tráfico comienza a enviar consult
 Para detener el sistema:
 
 ```bash
-docker compose down
+docker-compose down
 ```
 
 Para reiniciar también las métricas guardadas:
 
 ```bash
-docker compose down -v
+docker-compose down -v
 ```
 
 ## Ejecución con múltiples consumers
@@ -64,7 +64,7 @@ Los experimentos principales del informe se realizaron con 1, 2 y 4 consumers, y
 Después de activar la cantidad de consumers deseada, ejecutar:
 
 ```bash
-docker compose down -v && docker compose up
+docker-compose down -v && docker-compose up
 ```
 
 
@@ -91,7 +91,7 @@ curl http://localhost:8003/health
 Para ver los logs del sistema:
 
 ```bash
-docker compose logs -f
+docker-compose logs -f
 ```
 
 Para ver un resumen de métricas:
