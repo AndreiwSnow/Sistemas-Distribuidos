@@ -29,7 +29,7 @@ No es necesario instalar dependencias de Python manualmente.
 Desde la carpeta de la tarea, ejecutar:
 
 ```bash
-docker compose down -v && docker compose up
+docker compose-down -v && docker compose up
 ```
 
 Al levantar los contenedores, el generador de tráfico comienza a enviar consultas automáticamente a Kafka y el consumer las procesa.
