@@ -1,0 +1,31 @@
+# Dataset (muy pesado para git)
+data/
+*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Docker
+*.log
+
+# Métricas generadas
+metrics_data/
+
+# Informe LaTeX
+informe/*.aux
+informe/*.log
+informe/*.out
+informe/*.toc
+informe/*.fls
+informe/*.fdb_latexmk
+informe/*.synctex.gz
+informe/*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
