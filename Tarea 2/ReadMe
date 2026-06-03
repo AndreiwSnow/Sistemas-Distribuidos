@@ -15,6 +15,8 @@ El flujo general es:
 
 Generador de tráfico -> Kafka -> Consumer -> Caché Redis -> Generador de respuestas -> Métricas
 
+Con esta arquitectura se busca evaluar el comportamiento del sistema bajo comunicación asíncrona, reintentos automáticos, fallos simulados, DLQ, consumidores paralelos y spikes de tráfico.
+
 ## Requisitos
 
 - Docker
@@ -115,7 +117,7 @@ SPIKE_AFTER      después de cuántas consultas se activa el spike
 ## Fallos y DLQ
 
 La entrega simula fallos en `response_generator` usando `FAIL_RATE`. Si una consulta falla, el consumer intenta procesarla nuevamente. Si supera el máximo de reintentos, la consulta se envía a `queries-dlq`, que corresponde a la cola de errores.
-
+La DLQ permite conservar las consultas que no pudieron completarse después de todos los reintentos, evitando que se pierdan silenciosamente y permitiendo su posterior análisis o reprocesamiento.
 ## Gráficos
 
 Los gráficos de resultados están en la carpeta:
@@ -134,8 +136,17 @@ python generar_graficos_t2.py
 
 El sistema espera encontrar el archivo:
 
-```txt
 data/open_buildings_rm.csv
-```
 
-Este archivo debe estar presente antes de levantar los contenedores.
+Este archivo corresponde al dataset usado para las consultas geoespaciales. Debido a su tamaño, no se incluye directamente en el repositorio. Debido a lo anterior, debe copiarse manualmente en la carpeta data/ antes de levantar los contenedores.
+
+La estructura esperada es:
+
+data/
+└── open_buildings_rm.csv
+
+Antes de ejecutar el sistema, se puede verificar si el archivo está presente con:
+
+ls data/open_buildings_rm.csv
+
+Si el archivo no existe, debe agregarse antes de correr los experimentos finales.
