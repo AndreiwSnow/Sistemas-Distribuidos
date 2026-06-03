@@ -29,7 +29,7 @@ No es necesario instalar dependencias de Python manualmente.
 Desde la carpeta de la tarea, ejecutar:
 
 ```bash
-docker-compose down -v && docker-compose up
+docker compose down -v && docker compose up
 ```
 
 Al levantar los contenedores, el generador de tráfico comienza a enviar consultas automáticamente a Kafka y el consumer las procesa.
@@ -46,6 +46,26 @@ Para reiniciar también las métricas guardadas:
 docker compose down -v
 ```
 
+## Ejecución con múltiples consumers
+
+El sistema permite ejecutar hasta 4 consumidores Kafka dentro del mismo grupo de consumo. En `docker-compose.yml` se dejaron definidos los siguientes servicios:
+
+```txt
+kafka_consumer      consumer 1
+kafka_consumer_2    consumer 2
+kafka_consumer_3    consumer 3
+kafka_consumer_4    consumer 4
+```
+
+Por defecto, el sistema puede ejecutarse con un consumer activo. Para probar más consumers, se deben activar o descomentar los servicios correspondientes en `docker-compose.yml`.
+
+Los experimentos principales del informe se realizaron con 1, 2 y 4 consumers, ya que esas configuraciones permiten comparar el comportamiento base y el efecto del escalamiento horizontal.
+
+Después de activar la cantidad de consumers deseada, ejecutar:
+
+```bash
+docker compose down -v && docker compose up
+```
 
 
 ## Servicios principales
@@ -88,6 +108,8 @@ docker logs sd_traffic | grep -A 12 "Resumen"
 
 Ver resumen de consumers Kafka (en otra terminal mientras corre):
 
+Ejecutar solo los comandos correspondientes a los consumers que estén activos.
+
 ```bash
 docker logs sd_consumer_1 | grep -A 12 "Resumen"
 docker logs sd_consumer_2 | grep -A 12 "Resumen"
@@ -119,6 +141,7 @@ SPIKE_AFTER      después de cuántas consultas se activa el spike
 ## Fallos y DLQ
 
 La entrega simula fallos en `response_generator` usando `FAIL_RATE`. Si una consulta falla, el consumer intenta procesarla nuevamente. Si supera el máximo de reintentos, la consulta se envía a `queries-dlq`, que corresponde a la cola de errores.
+
 La DLQ permite conservar las consultas que no pudieron completarse después de todos los reintentos, evitando que se pierdan silenciosamente y permitiendo su posterior análisis o reprocesamiento.
 
 ## Gráficos
@@ -139,17 +162,23 @@ python generar_graficos_t2.py
 
 El sistema espera encontrar el archivo:
 
+```txt
 data/open_buildings_rm.csv
+```
 
 Este archivo corresponde al dataset usado para las consultas geoespaciales. Debido a su tamaño, este archivo no se incluye directamente en el repositorio, por lo que debe copiarse manualmente en la carpeta `data/` antes de levantar los contenedores.
 
 La estructura esperada es:
 
+```txt
 data/
 └── open_buildings_rm.csv
+```
 
 Antes de ejecutar el sistema, se puede verificar si el archivo está presente con:
 
+```bash
 ls data/open_buildings_rm.csv
+```
 
 Si el archivo no existe, debe agregarse antes de correr los experimentos finales.
