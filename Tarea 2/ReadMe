@@ -27,7 +27,7 @@ No es necesario instalar dependencias de Python manualmente.
 Desde la carpeta de la tarea, ejecutar:
 
 ```bash
-docker compose up --build
+docker-compose down -v && docker-compose up
 ```
 
 Al levantar los contenedores, el generador de tráfico comienza a enviar consultas automáticamente a Kafka y el consumer las procesa.
@@ -76,6 +76,27 @@ Para ver un resumen de métricas:
 curl http://localhost:8003/metrics/summary
 ```
 
+Ver resumen del sistema síncrono (en otra terminal mientras corre):
+
+```bash
+docker logs sd_traffic | grep -A 12 "Resumen"
+```
+
+Ver resumen de consumers Kafka (en otra terminal mientras corre):
+
+```bash
+docker logs sd_consumer_1 | grep -A 12 "Resumen"
+docker logs sd_consumer_2 | grep -A 12 "Resumen"
+docker logs sd_consumer_3 | grep -A 12 "Resumen"
+docker logs sd_consumer_4 | grep -A 12 "Resumen"
+```
+
+Ver backlog en tiempo real (en otra terminal mientras corre):
+
+```bash
+watch -n 5 "curl -s http://localhost:8003/metrics/backlog"
+```
+
 ## Configuración rápida
 
 Las variables principales se modifican en `docker-compose.yml`:
@@ -86,6 +107,9 @@ DISTRIBUTION     distribución de tráfico: zipf o uniform
 USE_KAFKA        true para usar Kafka
 FAIL_RATE        probabilidad de fallo simulada en el generador de respuestas
 MAX_RETRIES      cantidad máxima de reintentos antes de enviar a DLQ
+SPIKE_ENABLED    true para activar spike de tráfico
+SPIKE_REQUESTS   cantidad de consultas adicionales en el spike
+SPIKE_AFTER      después de cuántas consultas se activa el spike
 ```
 
 ## Fallos y DLQ
