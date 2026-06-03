@@ -13,9 +13,7 @@ Esta tarea extiende el sistema anterior agregando comunicación asíncrona con K
 
 El flujo general es:
 
-```txt
 Generador de tráfico -> Kafka -> Consumer -> Caché Redis -> Generador de respuestas -> Métricas
-```
 
 ## Requisitos
 
