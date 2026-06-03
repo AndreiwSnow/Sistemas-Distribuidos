@@ -46,6 +46,8 @@ Para reiniciar también las métricas guardadas:
 docker compose down -v
 ```
 
+
+
 ## Servicios principales
 
 - `traffic_generator`: genera consultas de prueba.
@@ -118,6 +120,7 @@ SPIKE_AFTER      después de cuántas consultas se activa el spike
 
 La entrega simula fallos en `response_generator` usando `FAIL_RATE`. Si una consulta falla, el consumer intenta procesarla nuevamente. Si supera el máximo de reintentos, la consulta se envía a `queries-dlq`, que corresponde a la cola de errores.
 La DLQ permite conservar las consultas que no pudieron completarse después de todos los reintentos, evitando que se pierdan silenciosamente y permitiendo su posterior análisis o reprocesamiento.
+
 ## Gráficos
 
 Los gráficos de resultados están en la carpeta:
@@ -138,7 +141,7 @@ El sistema espera encontrar el archivo:
 
 data/open_buildings_rm.csv
 
-Este archivo corresponde al dataset usado para las consultas geoespaciales. Debido a su tamaño, no se incluye directamente en el repositorio. Debido a lo anterior, debe copiarse manualmente en la carpeta data/ antes de levantar los contenedores.
+Este archivo corresponde al dataset usado para las consultas geoespaciales. Debido a su tamaño, este archivo no se incluye directamente en el repositorio, por lo que debe copiarse manualmente en la carpeta `data/` antes de levantar los contenedores.
 
 La estructura esperada es:
 
