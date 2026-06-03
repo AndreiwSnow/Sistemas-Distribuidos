@@ -1,0 +1,119 @@
+# Tarea 2 - Sistemas Distribuidos 2026-1
+
+Sistema distribuido para procesar consultas geoespaciales usando Kafka, Redis y servicios en Python.
+
+Profesor: Nicolás Hidalgo
+Ayudantes: Isidora González, Natalia Ortega, Joaquín Villegas, Vicente Díaz y Benjamín Aceituno
+Integrantes: Isidora Bravo Ortiz - Mateo Solari López
+
+
+## ¿Qué hace esta entrega?
+
+Esta tarea extiende el sistema anterior agregando comunicación asíncrona con Kafka. En vez de enviar las consultas directamente al caché, ahora el generador de tráfico publica mensajes en una cola y uno o más consumidores los procesan.
+
+El flujo general es:
+
+```txt
+Generador de tráfico -> Kafka -> Consumer -> Caché Redis -> Generador de respuestas -> Métricas
+```
+
+## Requisitos
+
+- Docker
+- Docker Compose
+
+No es necesario instalar dependencias de Python manualmente.
+
+## Cómo ejecutar
+
+Desde la carpeta de la tarea, ejecutar:
+
+```bash
+docker compose up --build
+```
+
+Al levantar los contenedores, el generador de tráfico comienza a enviar consultas automáticamente a Kafka y el consumer las procesa.
+
+Para detener el sistema:
+
+```bash
+docker compose down
+```
+
+Para reiniciar también las métricas guardadas:
+
+```bash
+docker compose down -v
+```
+
+## Servicios principales
+
+- `traffic_generator`: genera consultas de prueba.
+- `kafka`: recibe las consultas en una cola de mensajes.
+- `kafka_consumer`: toma mensajes desde Kafka y los procesa.
+- `cache_service`: revisa Redis antes de calcular una respuesta nueva.
+- `redis`: guarda respuestas repetidas para acelerar consultas.
+- `response_generator`: calcula las respuestas usando el dataset.
+- `metrics`: guarda métricas del experimento.
+
+## Verificar que funciona
+
+Se pueden revisar los servicios principales con:
+
+```bash
+curl http://localhost:8001/health
+curl http://localhost:8002/health
+curl http://localhost:8003/health
+```
+
+Para ver los logs del sistema:
+
+```bash
+docker compose logs -f
+```
+
+Para ver un resumen de métricas:
+
+```bash
+curl http://localhost:8003/metrics/summary
+```
+
+## Configuración rápida
+
+Las variables principales se modifican en `docker-compose.yml`:
+
+```txt
+TOTAL_REQUESTS   cantidad de consultas generadas
+DISTRIBUTION     distribución de tráfico: zipf o uniform
+USE_KAFKA        true para usar Kafka
+FAIL_RATE        probabilidad de fallo simulada en el generador de respuestas
+MAX_RETRIES      cantidad máxima de reintentos antes de enviar a DLQ
+```
+
+## Fallos y DLQ
+
+La entrega simula fallos en `response_generator` usando `FAIL_RATE`. Si una consulta falla, el consumer intenta procesarla nuevamente. Si supera el máximo de reintentos, la consulta se envía a `queries-dlq`, que corresponde a la cola de errores.
+
+## Gráficos
+
+Los gráficos de resultados están en la carpeta:
+
+```txt
+graficos_t2/
+```
+
+Si se quieren generar nuevamente:
+
+```bash
+python generar_graficos_t2.py
+```
+
+## Dataset
+
+El sistema espera encontrar el archivo:
+
+```txt
+data/open_buildings_rm.csv
+```
+
+Este archivo debe estar presente antes de levantar los contenedores.
